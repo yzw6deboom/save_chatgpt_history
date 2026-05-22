@@ -1,0 +1,18 @@
+{
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "types": ["vitest/globals", "chrome"]
+  },
+  "include": [
+    "src",
+    "tests",
+    "wxt.config.ts",
+    "vitest.config.ts",
+    "tailwind.config.ts",
+    "postcss.config.cjs"
+  ]
+}
