@@ -412,14 +412,16 @@ Markdown 初始格式建议：
 
 目标：支持用户导入 ChatGPT 原始 JSON 文件。
 
+状态：已完成。
+
 任务：
 
-- [ ] 实现 `RawJsonAdapter`；
-- [ ] 支持从 `File` 读取文本；
-- [ ] 解析 JSON；
-- [ ] 判断是否包含 `mapping`；
-- [ ] 调用 `parseConversation`；
-- [ ] 返回统一结果或用户可理解错误。
+- [x] 实现 `RawJsonAdapter`；
+- [x] 支持从 `File` 读取文本；
+- [x] 解析 JSON；
+- [x] 判断是否包含 `mapping`；
+- [x] 调用 `parseConversation`；
+- [x] 返回统一结果或用户可理解错误。
 
 错误提示：
 
@@ -431,9 +433,19 @@ Markdown 初始格式建议：
 
 验收标准：
 
-- [ ] 用户选择 `file.json` 后能成功解析；
-- [ ] 非 JSON 文件有明确提示；
-- [ ] 缺少 `mapping` 的 JSON 有明确提示。
+- [x] 用户选择 `file.json` 后能成功解析；
+- [x] 非 JSON 文件有明确提示；
+- [x] 缺少 `mapping` 的 JSON 有明确提示。
+
+执行记录：
+
+- 新增 `src/adapters/raw-json-adapter.ts`，实现 `RawJsonAdapter`、`createRawJsonAdapter`、统一成功 / 失败返回结构与稳定错误码；
+- 新增 `src/adapters/index.ts` 统一导出 adapter API；
+- 支持 `parseFile(file, parseOptions)`、`parseText(text, parseOptions)`、`parseRaw(raw, parseOptions)`；
+- 默认文件大小限制为 25 MB，可通过 `RawJsonAdapterOptions.maxFileSizeBytes` 覆盖；
+- 覆盖错误：非 JSON 文件、空文件、无效 JSON、缺少 `mapping`、解析结果为空、文件过大、文件读取失败；
+- 新增 `tests/raw-json-adapter.test.ts`，使用真实 `spec/design/file.json` 验证用户选择 `file.json` 后能成功解析，并覆盖所有主要错误路径；
+- 验证命令：`npm test`、`npx tsc --noEmit` 均通过。
 
 ---
 
