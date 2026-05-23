@@ -195,10 +195,30 @@ MVP 可以先不做 Web Worker，但应保留模块边界。
 
 ## 4. 当前仓库状态
 
-当前仓库尚未初始化实际插件工程，现有结构为：
+当前仓库已完成 Milestone 0 工程初始化与 Milestone 1 Parser Core，现有结构包括：
 
 ```txt
 save_chatgpt_history/
+├── package.json
+├── package-lock.json
+├── tsconfig.json
+├── vitest.config.ts
+├── wxt.config.ts
+├── src/
+│   ├── core/
+│   │   ├── index.ts
+│   │   ├── parser.ts
+│   │   └── types.ts
+│   ├── core/exporters/
+│   ├── adapters/
+│   ├── entrypoints/
+│   ├── storage/
+│   ├── ui/
+│   └── utils/
+├── tests/
+│   ├── fixtures/chatgpt-conversation-sample.json
+│   ├── parser.test.ts
+│   └── scaffold.test.ts
 └── spec/
     ├── apply/
     └── design/
@@ -206,15 +226,12 @@ save_chatgpt_history/
         └── file.json
 ```
 
-未发现：
+已验证：
 
-- `package.json`
-- `src/`
-- `tests/`
-- `wxt.config.ts`
-- `tsconfig.json`
-
-因此后续开发需要从工程初始化开始。
+- `npm test` 通过；
+- `npx tsc --noEmit` 通过；
+- Parser Core 不依赖浏览器 API，可解析复制后的 ChatGPT fixture 并输出当前主干消息；
+- 遇到异常 mapping / 节点 / 时间戳等情况会返回稳定 warnings。
 
 ---
 
@@ -288,9 +305,11 @@ Popup / Side Panel UI
 
 目标：实现不依赖浏览器 API 的 ChatGPT 原始 JSON 解析核心。
 
+状态：已完成。
+
 任务：
 
-- [ ] 定义核心类型：
+- [x] 定义核心类型：
   - `ConversationResult`
   - `ConversationMessage`
   - `ParseOptions`
@@ -299,26 +318,35 @@ Popup / Side Panel UI
   - `RawConversation`
   - `Citation`
   - `AttachmentRef`
-- [ ] 实现 `normalizeRawConversation(raw)`；
-- [ ] 实现 `parseConversation(raw, options)`；
-- [ ] 实现 `resolveCurrentPath(mapping, currentNode, warnings)`；
-- [ ] 实现 `inferLatestLeafNode(mapping, warnings)`；
-- [ ] 实现循环引用检测；
-- [ ] 实现缺失节点 warning；
-- [ ] 实现 `extractMessage(node, root, warnings)`；
-- [ ] 实现 `shouldKeepMessage(message, options)`；
-- [ ] 实现 `extractContent(content, warnings)`；
-- [ ] 实现 `extractCitations(message)`；
-- [ ] 实现时间转换 `toIsoTime(value)`；
-- [ ] 实现模型字段提取优先级。
+- [x] 实现 `normalizeRawConversation(raw)`；
+- [x] 实现 `parseConversation(raw, options)`；
+- [x] 实现 `resolveCurrentPath(mapping, currentNode, warnings)`；
+- [x] 实现 `inferLatestLeafNode(mapping, warnings)`；
+- [x] 实现循环引用检测；
+- [x] 实现缺失节点 warning；
+- [x] 实现 `extractMessage(node, root, warnings)`；
+- [x] 实现 `shouldKeepMessage(message, options)`；
+- [x] 实现 `extractContent(content, warnings)`；
+- [x] 实现 `extractCitations(message)`；
+- [x] 实现时间转换 `toIsoTime(value)`；
+- [x] 实现模型字段提取优先级。
 
 验收标准：
 
-- [ ] 能解析 `spec/design/file.json` 或复制后的 fixture；
-- [ ] 能输出当前主干消息；
-- [ ] 默认只保留 user / assistant 可见消息；
-- [ ] 遇到异常节点不崩溃，并返回 warnings；
-- [ ] 单元测试覆盖主干路径、过滤、内容提取、时间转换。
+- [x] 能解析 `spec/design/file.json` 或复制后的 fixture；
+- [x] 能输出当前主干消息；
+- [x] 默认只保留 user / assistant 可见消息；
+- [x] 遇到异常节点不崩溃，并返回 warnings；
+- [x] 单元测试覆盖主干路径、过滤、内容提取、时间转换。
+
+执行记录：
+
+- 新增 `src/core/types.ts` 定义 Parser Core 的统一类型；
+- 新增 `src/core/parser.ts` 实现解析入口、主干路径解析、内容提取、消息过滤、引用提取、时间转换和模型字段优先级；
+- 新增 `src/core/index.ts` 统一导出 core API；
+- 新增 `tests/parser.test.ts` 覆盖 fixture 主干解析、过滤、内容提取、时间转换、缺失 mapping、缺失节点与循环引用；
+- 新增 `src/vite-env.d.ts` 补充 CSS module 声明，保证 `npx tsc --noEmit` 通过；
+- 验证命令：`npm test`、`npx tsc --noEmit` 均通过。
 
 ---
 
