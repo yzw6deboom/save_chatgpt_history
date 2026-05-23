@@ -354,12 +354,14 @@ Popup / Side Panel UI
 
 目标：将统一的 `ConversationResult` 导出为标准 Markdown 文件。
 
+状态：已完成。
+
 任务：
 
-- [ ] 实现 Markdown exporter；
-- [ ] 实现 `sanitizeFilename(title)`；
-- [ ] 实现 `buildExportFilename(conversation)`，固定生成 `.md` 文件名；
-- [ ] 支持 Markdown 导出选项：
+- [x] 实现 Markdown exporter；
+- [x] 实现 `sanitizeFilename(title)`；
+- [x] 实现 `buildExportFilename(conversation)`，固定生成 `.md` 文件名；
+- [x] 支持 Markdown 导出选项：
   - 是否包含时间；
   - 是否包含模型；
   - 是否包含引用；
@@ -391,10 +393,18 @@ Markdown 初始格式建议：
 
 验收标准：
 
-- [ ] Markdown 导出可读；
-- [ ] Markdown 可被 Obsidian / Notion 作为普通 Markdown 导入或打开；
-- [ ] 文件名不包含非法字符；
-- [ ] 对空标题、超长标题、中文标题处理正常。
+- [x] Markdown 导出可读；
+- [x] Markdown 可被 Obsidian / Notion 作为普通 Markdown 导入或打开；
+- [x] 文件名不包含非法字符；
+- [x] 对空标题、超长标题、中文标题处理正常。
+
+执行记录：
+
+- 新增 `src/core/exporters/markdown-exporter.ts`，实现 `toMarkdown`、`sanitizeFilename`、`buildExportFilename` 与 `MarkdownExportOptions`；
+- 更新 `src/core/index.ts` 统一导出 Markdown Exporter API；
+- 新增 `tests/markdown-exporter.test.ts`，覆盖 Markdown 内容、导出选项、文件名清理、`.md` 文件名生成以及真实 `spec/design/file.json` 回归导出；
+- 测试会生成 `.output/markdown-exporter/spec-design-file.md` 供人工查看；
+- 验证命令：`npm test`、`npx tsc --noEmit` 均通过。
 
 ---
 
