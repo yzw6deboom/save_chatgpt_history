@@ -501,20 +501,31 @@ Markdown 初始格式建议：
 
 目标：补齐导出交互和基础设置持久化。
 
+状态：已完成。
+
 任务：
 
-- [ ] 使用 `chrome.downloads.download` 下载文件；
-- [ ] 实现 Blob URL 创建和释放；
-- [ ] 实现复制 Markdown 到剪贴板；
-- [ ] 使用 `chrome.storage.local` 保存基础设置；
-- [ ] 下载失败时提供复制兜底；
-- [ ] 设置项在 Popup / Side Panel / Options 间保持一致。
+- [x] 使用 `chrome.downloads.download` 下载文件；
+- [x] 实现 Blob URL 创建和释放；
+- [x] 实现复制 Markdown 到剪贴板；
+- [x] 使用 `chrome.storage.local` 保存基础设置；
+- [x] 下载失败时提供复制兜底；
+- [x] 设置项在 Popup / Side Panel / Options 间保持一致。
 
 验收标准：
 
-- [ ] 下载 Markdown 正常；
-- [ ] 下载失败时能复制 Markdown 内容；
-- [ ] 设置刷新后仍保留。
+- [x] 下载 Markdown 正常；
+- [x] 下载失败时能复制 Markdown 内容；
+- [x] 设置刷新后仍保留。
+
+执行记录：
+
+- 新增 `src/utils/markdown-file-actions.ts`，封装 `downloadMarkdownFile` 与 `copyMarkdownToClipboard`；
+- `downloadMarkdownFile` 优先使用 `chrome.downloads.download`，并在所有路径中释放 Blob URL；
+- Side Panel 下载失败时会自动尝试复制 Markdown，并提示用户可手动保存；
+- `src/storage/export-settings.ts` 使用 `chrome.storage.local` 保存导出设置，并提供本地 fallback；
+- 新增 `tests/markdown-file-actions.test.ts` 覆盖下载成功、下载失败、Blob URL 释放、复制成功和复制失败；
+- 新增 `tests/export-settings.test.ts` 覆盖默认设置、持久化和部分设置合并。
 
 ---
 
@@ -522,16 +533,18 @@ Markdown 初始格式建议：
 
 目标：保障解析器和导出器稳定。
 
+状态：已完成。
+
 任务：
 
-- [ ] 为 `resolveCurrentPath` 写测试；
-- [ ] 为 `inferLatestLeafNode` 写测试；
-- [ ] 为 `shouldKeepMessage` 写测试；
-- [ ] 为 `extractContent` 写测试；
-- [ ] 为 `toMarkdown` 写测试；
-- [ ] 为 `sanitizeFilename` 写测试；
-- [ ] 使用样例 `file.json` 做 fixture 回归测试；
-- [ ] 构造异常 fixture：
+- [x] 为 `resolveCurrentPath` 写测试；
+- [x] 为 `inferLatestLeafNode` 写测试；
+- [x] 为 `shouldKeepMessage` 写测试；
+- [x] 为 `extractContent` 写测试；
+- [x] 为 `toMarkdown` 写测试；
+- [x] 为 `sanitizeFilename` 写测试；
+- [x] 使用样例 `file.json` 做 fixture 回归测试；
+- [x] 构造异常 fixture：
   - `current_node` 缺失；
   - parent 断裂；
   - 循环引用；
@@ -541,9 +554,18 @@ Markdown 初始格式建议：
 
 验收标准：
 
-- [ ] 核心测试通过；
-- [ ] 样例 fixture 可稳定解析；
-- [ ] 异常 fixture 不导致解析器崩溃。
+- [x] 核心测试通过；
+- [x] 样例 fixture 可稳定解析；
+- [x] 异常 fixture 不导致解析器崩溃。
+
+执行记录：
+
+- `tests/parser.test.ts` 覆盖主干路径、最新叶子推断、缺失 parent、循环引用、空消息过滤、未知 content type、多分支和真实 fixture；
+- `tests/markdown-exporter.test.ts` 覆盖 `toMarkdown`、`sanitizeFilename`、导出选项、真实 fixture Markdown 导出和 ChatGPT 私有标记清理；
+- `tests/raw-json-adapter.test.ts` 覆盖用户文件导入与主要错误路径；
+- `tests/markdown-file-actions.test.ts` 覆盖下载 / 复制交互；
+- `tests/export-settings.test.ts` 覆盖本地设置持久化；
+- 验证命令：`npm test`、`npx tsc --noEmit`、`npm run build` 均通过。
 
 ---
 

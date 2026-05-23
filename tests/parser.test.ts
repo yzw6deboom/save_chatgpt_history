@@ -4,6 +4,7 @@ import { dirname, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   extractContent,
+  inferLatestLeafNode,
   parseConversation,
   resolveCurrentPath,
   shouldKeepMessage,
@@ -132,6 +133,77 @@ describe("parser core", () => {
     expect(result.message_count).toBeGreaterThan(0);
   });
 
+  it("infers the latest leaf node when current_node is missing", () => {
+    const warnings: ParseWarning[] = [];
+    const mapping: Record<string, MappingNode> = {
+      root: {
+        id: "root",
+        message: null,
+        parent: null,
+        children: ["old", "new"],
+      },
+      old: {
+        id: "old",
+        message: { create_time: 1000 },
+        parent: "root",
+        children: [],
+      },
+      new: {
+        id: "new",
+        message: { create_time: 2000 },
+        parent: "root",
+        children: [],
+      },
+    };
+
+    expect(inferLatestLeafNode(mapping, warnings)).toBe("new");
+    expect(
+      warnings.some((warning) => warning.code === "CURRENT_NODE_MISSING"),
+    ).toBe(true);
+  });
+
+  it("parses multi-branch conversations by following current_node branch", () => {
+    const result = parseConversation(
+      {
+        title: "branching",
+        mapping: {
+          root: {
+            id: "root",
+            message: null,
+            parent: null,
+            children: ["a", "b"],
+          },
+          a: {
+            id: "a",
+            parent: "root",
+            children: [],
+            message: {
+              id: "a",
+              author: { role: "assistant" },
+              content: { content_type: "text", parts: ["old branch"] },
+            },
+          },
+          b: {
+            id: "b",
+            parent: "root",
+            children: [],
+            message: {
+              id: "b",
+              author: { role: "assistant" },
+              content: { content_type: "text", parts: ["selected branch"] },
+            },
+          },
+        },
+        current_node: "b",
+      },
+      { source: "raw_json" },
+    );
+
+    expect(result.message_count).toBe(1);
+    expect(result.branch_count).toBe(1);
+    expect(result.messages[0]?.content).toBe("selected branch");
+  });
+
   it("resolves a path from current node to root and reports missing parents", () => {
     const warnings: ParseWarning[] = [];
     const mapping: Record<string, MappingNode> = {
@@ -236,6 +308,25 @@ describe("parser core", () => {
     expect(
       extractContent({ content_type: "custom", text: "fallback text" }).text,
     ).toBe("fallback text");
+  });
+
+  it("returns warnings for unknown content types without crashing", () => {
+    const warnings: ParseWarning[] = [];
+    const content = extractContent(
+      { content_type: "unknown_custom_payload" },
+      warnings,
+      "node-x",
+    );
+
+    expect(content).toEqual({
+      content_type: "unknown_custom_payload",
+      text: "",
+      attachments: [],
+    });
+    expect(warnings[0]).toMatchObject({
+      code: "UNSUPPORTED_CONTENT_TYPE",
+      node_id: "node-x",
+    });
   });
 
   it("converts timestamps and returns warnings for invalid values", () => {

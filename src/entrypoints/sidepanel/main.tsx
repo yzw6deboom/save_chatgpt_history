@@ -14,6 +14,10 @@ import {
   saveExportSettings,
   type ExportSettings,
 } from "../../storage/export-settings";
+import {
+  copyMarkdownToClipboard,
+  downloadMarkdownFile,
+} from "../../utils/markdown-file-actions";
 
 type ParseStatus = "idle" | "ready" | "parsing" | "success" | "error";
 
@@ -105,60 +109,35 @@ function SidePanelApp() {
   async function copyMarkdown() {
     if (!markdown) return;
 
-    try {
-      await navigator.clipboard.writeText(markdown);
-      setCopyStatus("Markdown 已复制到剪贴板。");
-    } catch (copyError) {
-      setCopyStatus(
-        copyError instanceof Error
-          ? `复制失败：${copyError.message}`
-          : "复制失败，请手动选择内容复制。",
-      );
-    }
+    const copyResult = await copyMarkdownToClipboard(markdown);
+    setCopyStatus(
+      copyResult.ok
+        ? "Markdown 已复制到剪贴板。"
+        : `复制失败：${copyResult.error} 请手动选择下方 Markdown 内容复制。`,
+    );
   }
 
   async function downloadMarkdown() {
     if (!result || !markdown) return;
 
     const filename = buildExportFilename(result);
-    const blob = new Blob([markdown], { type: "text/markdown;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
+    const downloadResult = await downloadMarkdownFile({
+      filename,
+      content: markdown,
+      saveAs: true,
+    });
 
-    try {
-      if (chrome.downloads?.download) {
-        await new Promise<void>((resolve, reject) => {
-          chrome.downloads.download(
-            { url, filename, saveAs: true },
-            (downloadId) => {
-              const runtimeError = chrome.runtime.lastError;
-              if (runtimeError) {
-                reject(new Error(runtimeError.message));
-                return;
-              }
-              if (typeof downloadId !== "number") {
-                reject(new Error("浏览器没有返回下载任务 ID。"));
-                return;
-              }
-              resolve();
-            },
-          );
-        });
-      } else {
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = filename;
-        link.click();
-      }
+    if (downloadResult.ok) {
       setDownloadStatus(`已生成下载文件：${filename}`);
-    } catch (downloadError) {
-      setDownloadStatus(
-        downloadError instanceof Error
-          ? `下载失败：${downloadError.message}`
-          : "下载失败，请尝试复制 Markdown。",
-      );
-    } finally {
-      URL.revokeObjectURL(url);
+      return;
     }
+
+    const copyResult = await copyMarkdownToClipboard(markdown);
+    setDownloadStatus(
+      copyResult.ok
+        ? `下载失败：${downloadResult.error} 已自动复制 Markdown，可手动保存为 ${filename}。`
+        : `下载失败：${downloadResult.error} 自动复制也失败：${copyResult.error}。请手动选择下方 Markdown 内容复制。`,
+    );
   }
 
   function handleFileInput(event: React.ChangeEvent<HTMLInputElement>) {
