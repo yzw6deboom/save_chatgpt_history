@@ -453,15 +453,17 @@ Markdown 初始格式建议：
 
 目标：完成用户可操作的浏览器插件界面。
 
+状态：已完成。
+
 任务：
 
-- [ ] 实现 Popup 快捷入口；
-- [ ] 实现 Side Panel 主界面；
-- [ ] Popup 提供：
+- [x] 实现 Popup 快捷入口；
+- [x] 实现 Side Panel 主界面；
+- [x] Popup 提供：
   - 打开 Side Panel；
   - 导入 JSON；
   - 打开设置；
-- [ ] Side Panel 提供：
+- [x] Side Panel 提供：
   - JSON 文件拖拽 / 选择；
   - 解析按钮；
   - 解析状态；
@@ -470,7 +472,7 @@ Markdown 初始格式建议：
   - Markdown 导出设置；
   - 下载 `.md` 按钮；
   - 复制 Markdown 按钮；
-- [ ] Options 页面提供基础设置：
+- [x] Options 页面提供基础设置：
   - 是否包含时间；
   - 是否包含模型；
   - 是否包含引用。
@@ -479,10 +481,19 @@ Markdown 初始格式建议：
 
 验收标准：
 
-- [ ] 用户能从插件入口导入 JSON；
-- [ ] 用户能看到解析结果预览；
-- [ ] 用户能选择格式并下载；
-- [ ] UI 对错误状态有明确提示。
+- [x] 用户能从插件入口导入 JSON；
+- [x] 用户能看到解析结果预览；
+- [x] 用户能选择格式并下载；
+- [x] UI 对错误状态有明确提示。
+
+执行记录：
+
+- 更新 `src/entrypoints/popup/main.tsx`，提供打开 Side Panel、导入 JSON、打开设置，以及导入状态反馈；
+- 更新 `src/entrypoints/sidepanel/main.tsx`，实现 JSON 拖拽 / 选择、解析按钮、解析状态、warning 列表、消息预览、Markdown 导出设置、下载 `.md`、复制 Markdown；
+- 更新 `src/entrypoints/options/main.tsx`，提供 Markdown 导出默认设置；
+- 新增 `src/storage/export-settings.ts`，提供导出设置默认值、加载和保存能力；
+- 使用 `RawJsonAdapter`、`parseConversation`、`toMarkdown`、`buildExportFilename` 打通从 JSON 导入到 Markdown 导出的 MVP 流程；
+- 验证命令：`npm test`、`npx tsc --noEmit`、`npm run build` 均通过。
 
 ---
 
